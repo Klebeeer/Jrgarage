@@ -1,133 +1,86 @@
 /* =============================================
-   JR GARAGE — script.js
+   JR GARAGE — script.js (Supabase Edition)
    Desenvolvido por Kleber Alves | Tríade Digital
    ============================================= */
 
 'use strict';
 
-/* === GTM / GA4 TRACKING === */
+/* ─────────────────────────────────────────────
+   CONFIGURAÇÃO SUPABASE
+   Substitua os dois valores abaixo.
+   Painel Supabase → Settings → API
+   ───────────────────────────────────────────── */
+const SUPABASE_URL  = 'https://qlzfyfepullihekanhwu.supabase.co';  // ← troque
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsemZ5ZmVwdWxsaWhla2FuaHd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTg0MzYsImV4cCI6MjA4OTg3NDQzNn0.lC2bwFsfG4nkVe-uA5kYJZS7XEJpuIMkFfXmyilC6KI';               // ← troque
+
+/* Cliente Supabase via CDN (carregado no HTML antes deste script) */
+const _db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+/* ─────────────────────────────────────────────
+   ESTADO GLOBAL
+   estoque[] substitui o array fixo anterior
+   ───────────────────────────────────────────── */
+let estoque = [];
+
+/* ─────────────────────────────────────────────
+   GTM / GA4 TRACKING  (inalterado)
+   ───────────────────────────────────────────── */
 function trackEvent(eventName, params = {}) {
-  if (typeof gtag === 'function') {
-    gtag('event', eventName, params);
-  }
-  if (typeof dataLayer !== 'undefined') {
-    dataLayer.push({ event: eventName, ...params });
-  }
+  if (typeof gtag === 'function') gtag('event', eventName, params);
+  if (typeof dataLayer !== 'undefined') dataLayer.push({ event: eventName, ...params });
 }
 
-/* === DADOS DO ESTOQUE === */
-// Edite aqui para adicionar ou remover veículos
-const estoque = [
-  {
-    id: 1,
-    nome: "Chevrolet Onix Plus Premier",
-    marca: "Chevrolet",
-    modelo: "Onix Plus Premier",
-    ano: "2022",
-    motor: "1.0 Turbo",
-    cambio: "Automático",
-    descricao: "Veículo em excelente estado, único dono, revisado em concessionária. Completo com todos os opcionais de fábrica.",
-    preco: "R$ 79.900",
-    imagemPrincipal: "",
-    fotos: [],
-    selo: "Destaque"
-  },
-  {
-    id: 2,
-    nome: "Toyota Corolla XEi",
-    marca: "Toyota",
-    modelo: "Corolla XEi",
-    ano: "2021",
-    motor: "2.0",
-    cambio: "Automático",
-    descricao: "Toyota Corolla em ótimas condições, histórico de revisões completo, película, rodas originais.",
-    preco: "R$ 118.000",
-    imagemPrincipal: "",
-    fotos: [],
-    selo: "Oportunidade"
-  },
-  {
-    id: 3,
-    nome: "Volkswagen T-Cross Highline",
-    marca: "Volkswagen",
-    modelo: "T-Cross Highline",
-    ano: "2023",
-    motor: "1.4 TSI",
-    cambio: "Automático",
-    descricao: "SUV compacto, baixíssima quilometragem, teto solar, couro, todas as assistências de direção.",
-    preco: "R$ 135.000",
-    imagemPrincipal: "",
-    fotos: [],
-    selo: "Baixa km"
-  },
-  {
-    id: 4,
-    nome: "Jeep Renegade Sport",
-    marca: "Jeep",
-    modelo: "Renegade Sport",
-    ano: "2020",
-    motor: "1.8",
-    cambio: "Manual",
-    descricao: "Jeep Renegade bem conservado, sempre revisado, ideal para quem quer um SUV com ótimo custo-benefício.",
-    preco: "R$ 82.500",
-    imagemPrincipal: "",
-    fotos: [],
-    selo: ""
-  },
-  {
-    id: 5,
-    nome: "Honda HR-V EXL",
-    marca: "Honda",
-    modelo: "HR-V EXL",
-    ano: "2019",
-    motor: "1.8",
-    cambio: "Automático",
-    descricao: "HR-V top de linha, couro, multimídia com Apple CarPlay, sensor de estacionamento. Procedência garantida.",
-    preco: "R$ 98.000",
-    imagemPrincipal: "",
-    fotos: [],
-    selo: ""
-  },
-  {
-    id: 6,
-    nome: "Ford Ka SE 1.0",
-    marca: "Ford",
-    modelo: "Ka SE",
-    ano: "2021",
-    motor: "1.0",
-    cambio: "Manual",
-    descricao: "Ford Ka bem conservado, baixo consumo, ideal para cidade. Excelente custo-benefício.",
-    preco: "R$ 52.000",
-    imagemPrincipal: "",
-    fotos: [],
-    selo: "Oportunidade"
-  }
-];
+/* ─────────────────────────────────────────────
+   BUSCA ESTOQUE DO SUPABASE
+   ───────────────────────────────────────────── */
+async function carregarEstoque() {
+  const { data, error } = await _db
+    .from('veiculos')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-/* === WHATSAPP === */
-const WA_NUMBER = "5514997750590";
-const WA_BASE = `https://wa.me/${WA_NUMBER}`;
-
-function waLink(veiculo = null, section = "geral") {
-  let msg = "";
-  if (veiculo) {
-    msg = encodeURIComponent(`Olá! Tenho interesse no ${veiculo.nome} ${veiculo.ano} por ${veiculo.preco}. Poderia me dar mais informações?`);
-  } else {
-    msg = encodeURIComponent("Olá! Vim pelo site da JR Garage e gostaria de mais informações sobre os veículos.");
+  if (error) {
+    console.error('[JR Garage] Erro ao carregar estoque:', error.message);
+    return [];
   }
+
+  /* Normaliza campos para manter compatibilidade total com o código existente.
+     Banco usa: marca, modelo, ano, motor, cambio, preco, descricao, capa, fotos, selo, destaque
+     Código antigo usava: nome, imagemPrincipal, fotos                                          */
+  return (data || []).map(v => ({
+    ...v,
+    nome:            `${v.marca} ${v.modelo}`,
+    imagemPrincipal: v.capa || '',
+    fotos:           v.fotos || []
+  }));
+}
+
+/* ─────────────────────────────────────────────
+   WHATSAPP  (inalterado)
+   ───────────────────────────────────────────── */
+const WA_NUMBER = '5514997750590';
+const WA_BASE   = `https://wa.me/${WA_NUMBER}`;
+
+function waLink(veiculo = null, section = 'geral') {
+  const msg = veiculo
+    ? encodeURIComponent(`Olá! Tenho interesse no ${veiculo.nome} ${veiculo.ano} por ${veiculo.preco}. Poderia me dar mais informações?`)
+    : encodeURIComponent('Olá! Vim pelo site da JR Garage e gostaria de mais informações sobre os veículos.');
   return `${WA_BASE}?text=${msg}`;
 }
 
-/* === RENDER CARD === */
+/* ─────────────────────────────────────────────
+   RENDER CARD  (inalterado)
+   ───────────────────────────────────────────── */
 function renderCard(v, destaque = false) {
   const seloMap = {
-    "Destaque": "selo-destaque",
-    "Oportunidade": "selo-oportunidade",
-    "Novo no estoque": "selo-novo",
-    "Baixa km": "selo-baixakm"
+    'Destaque':        'selo-destaque',
+    'Oportunidade':    'selo-oportunidade',
+    'Novo no estoque': 'selo-novo',
+    'Baixa km':        'selo-baixakm'
   };
 
-  const seloHTML = v.selo ? `<span class="card-selo ${seloMap[v.selo] || 'selo-destaque'}">${v.selo}</span>` : '';
+  const seloHTML = v.selo
+    ? `<span class="card-selo ${seloMap[v.selo] || 'selo-destaque'}">${v.selo}</span>` : '';
 
   const fotoHTML = v.imagemPrincipal
     ? `<img src="${v.imagemPrincipal}" alt="${v.nome}" loading="lazy">`
@@ -174,7 +127,7 @@ function renderCard(v, destaque = false) {
           </a>
           <button class="btn btn-outline btn-sm js-ver-detalhes"
             data-id="${v.id}"
-            onclick="abrirModal(${v.id})">
+            onclick="abrirModal('${v.id}')">
             Ver detalhes
           </button>
         </div>
@@ -182,7 +135,9 @@ function renderCard(v, destaque = false) {
     </div>`;
 }
 
-/* === MODAL === */
+/* ─────────────────────────────────────────────
+   MODAL  (inalterado — id agora é UUID string)
+   ───────────────────────────────────────────── */
 let modalAberto = null;
 
 function abrirModal(id) {
@@ -268,15 +223,12 @@ function trocarFoto(src, el, veiculoNome) {
   if (main) main.src = src;
   document.querySelectorAll('.modal-mini').forEach(m => m.classList.remove('active'));
   if (el) el.classList.add('active');
-  trackEvent('vehicle_gallery_interaction', {
-    event_category: 'engagement',
-    event_label: 'gallery_image_change',
-    page: 'estoque',
-    vehicle: veiculoNome
-  });
+  trackEvent('photo_change', { event_category: 'engagement', event_label: 'gallery_photo_change', vehicle: veiculoNome });
 }
 
-/* === FILTRO ESTOQUE === */
+/* ─────────────────────────────────────────────
+   FILTRO ESTOQUE  (inalterado)
+   ───────────────────────────────────────────── */
 function buildSidebar() {
   const container = document.getElementById('marcas-container');
   if (!container) return;
@@ -284,9 +236,7 @@ function buildSidebar() {
   const marcasMap = {};
   estoque.forEach(v => {
     if (!marcasMap[v.marca]) marcasMap[v.marca] = [];
-    if (!marcasMap[v.marca].includes(v.modelo)) {
-      marcasMap[v.marca].push(v.modelo);
-    }
+    if (!marcasMap[v.marca].includes(v.modelo)) marcasMap[v.marca].push(v.modelo);
   });
 
   const total = estoque.length;
@@ -296,7 +246,6 @@ function buildSidebar() {
   </div>`;
 
   Object.keys(marcasMap).sort().forEach(marca => {
-    const count = marcasMap[marca].length;
     const modelos = marcasMap[marca];
     html += `
       <div>
@@ -316,26 +265,21 @@ function buildSidebar() {
 let filtroAtual = { marca: 'todos', modelo: null, busca: '' };
 
 function filtrarMarca(marca, el) {
-  filtroAtual.marca = marca;
+  filtroAtual.marca  = marca;
   filtroAtual.modelo = null;
-
   document.querySelectorAll('.marca-item').forEach(m => m.classList.remove('active'));
   document.querySelectorAll('.modelos-lista').forEach(m => m.classList.remove('open'));
   document.querySelectorAll('.modelo-item').forEach(m => m.classList.remove('active'));
-
   if (el) el.classList.add('active');
-
   if (marca !== 'todos') {
-    const modId = `modelos-${marca.replace(/\s/g,'-')}`;
-    const modLista = document.getElementById(modId);
+    const modLista = document.getElementById(`modelos-${marca.replace(/\s/g,'-')}`);
     if (modLista) modLista.classList.add('open');
   }
-
   renderEstoque();
 }
 
 function filtrarModelo(marca, modelo, el) {
-  filtroAtual.marca = marca;
+  filtroAtual.marca  = marca;
   filtroAtual.modelo = modelo;
   document.querySelectorAll('.modelo-item').forEach(m => m.classList.remove('active'));
   if (el) el.classList.add('active');
@@ -347,13 +291,8 @@ function renderEstoque() {
   if (!container) return;
 
   let lista = estoque;
-
-  if (filtroAtual.marca !== 'todos') {
-    lista = lista.filter(v => v.marca === filtroAtual.marca);
-  }
-  if (filtroAtual.modelo) {
-    lista = lista.filter(v => v.modelo === filtroAtual.modelo);
-  }
+  if (filtroAtual.marca !== 'todos') lista = lista.filter(v => v.marca === filtroAtual.marca);
+  if (filtroAtual.modelo)            lista = lista.filter(v => v.modelo === filtroAtual.modelo);
   if (filtroAtual.busca) {
     const q = filtroAtual.busca.toLowerCase();
     lista = lista.filter(v =>
@@ -383,35 +322,32 @@ function renderEstoque() {
   container.innerHTML = lista.map(v => renderCard(v)).join('');
 }
 
-/* === DESTAQUES HOME === */
+/* ─────────────────────────────────────────────
+   DESTAQUES HOME
+   Prioriza veículos com destaque = true
+   ───────────────────────────────────────────── */
 function renderDestaques() {
   const container = document.getElementById('destaques-grid');
   if (!container) return;
-  const top3 = estoque.slice(0, 3);
-  container.innerHTML = top3.map(v => renderCard(v, true)).join('');
+  const destaques = estoque.filter(v => v.destaque).slice(0, 3);
+  const lista     = destaques.length > 0 ? destaques : estoque.slice(0, 3);
+  container.innerHTML = lista.map(v => renderCard(v, true)).join('');
 }
 
-/* === NAV HAMBURGUER === */
+/* ─────────────────────────────────────────────
+   NAV / SIDEBAR / BUSCA / TRACKING / MODAL CLOSE
+   (todos inalterados)
+   ───────────────────────────────────────────── */
 function initNav() {
   const hamburger = document.getElementById('hamburger');
   const mobileNav = document.getElementById('mobile-nav');
-
-  if (hamburger && mobileNav) {
-    hamburger.addEventListener('click', () => {
-      mobileNav.classList.toggle('open');
-    });
-  }
-
-  window.closeMobileNav = function() {
-    if (mobileNav) mobileNav.classList.remove('open');
-  };
+  if (hamburger && mobileNav) hamburger.addEventListener('click', () => mobileNav.classList.toggle('open'));
+  window.closeMobileNav = () => { if (mobileNav) mobileNav.classList.remove('open'); };
 }
 
-/* === SIDEBAR MOBILE === */
 function initSidebarMobile() {
-  const toggle = document.getElementById('sidebar-mobile-toggle');
+  const toggle  = document.getElementById('sidebar-mobile-toggle');
   const sidebar = document.getElementById('sidebar');
-
   if (toggle && sidebar) {
     toggle.addEventListener('click', () => {
       sidebar.classList.toggle('open');
@@ -421,107 +357,65 @@ function initSidebarMobile() {
   }
 }
 
-/* === BUSCA === */
 function initBusca() {
   const input = document.getElementById('busca-input');
-  if (input) {
-    input.addEventListener('input', (e) => {
-      filtroAtual.busca = e.target.value.trim();
-      renderEstoque();
-    });
-  }
+  if (input) input.addEventListener('input', e => { filtroAtual.busca = e.target.value.trim(); renderEstoque(); });
 }
 
-/* === MAPA TRACKING === */
 function initMapaTracking() {
   const mapaOverlay = document.querySelector('.mapa-overlay');
   if (mapaOverlay) {
     mapaOverlay.addEventListener('click', () => {
       mapaOverlay.style.pointerEvents = 'none';
-      trackEvent('map_click', {
-        event_category: 'engagement',
-        event_label: 'mapa_jrgarage',
-        location: 'jrgarage',
-        page: 'home'
-      });
+      trackEvent('map_click', { event_category: 'engagement', event_label: 'mapa_jrgarage', location: 'jrgarage', page: 'home' });
     });
   }
 }
 
-/* === TRACKING GERAL === */
 function initTracking() {
-  // WhatsApp hero
   document.querySelectorAll('.js-track-whatsapp').forEach(el => {
-    el.addEventListener('click', () => {
-      const page = el.dataset.page || 'unknown';
-      const section = el.dataset.section || 'unknown';
-      const vehicle = el.dataset.vehicle || '';
-      trackEvent('whatsapp_click', {
-        event_category: 'conversion',
-        event_label: 'whatsapp_button',
-        page, section, vehicle
-      });
-    });
+    el.addEventListener('click', () => trackEvent('whatsapp_click', {
+      event_category: 'conversion', event_label: 'whatsapp_button',
+      page: el.dataset.page || 'unknown', section: el.dataset.section || 'unknown', vehicle: el.dataset.vehicle || ''
+    }));
   });
-
-  // Ver estoque
   document.querySelectorAll('.js-track-estoque').forEach(el => {
-    el.addEventListener('click', () => {
-      trackEvent('view_stock_click', {
-        event_category: 'engagement',
-        event_label: 'ver_estoque',
-        page: 'home'
-      });
-    });
+    el.addEventListener('click', () => trackEvent('view_stock_click', { event_category: 'engagement', event_label: 'ver_estoque', page: 'home' }));
   });
-
-  // Instagram footer
   document.querySelectorAll('.js-track-instagram').forEach(el => {
-    el.addEventListener('click', () => {
-      trackEvent('instagram_click', {
-        event_category: 'engagement',
-        event_label: 'footer_instagram',
-        page: 'all'
-      });
-    });
+    el.addEventListener('click', () => trackEvent('instagram_click', { event_category: 'engagement', event_label: 'footer_instagram', page: 'all' }));
   });
-
-  // Avaliações
   document.querySelectorAll('.js-track-avaliacoes').forEach(el => {
-    el.addEventListener('click', () => {
-      trackEvent('reviews_click', {
-        event_category: 'engagement',
-        event_label: 'google_reviews',
-        page: 'home'
-      });
-    });
+    el.addEventListener('click', () => trackEvent('reviews_click', { event_category: 'engagement', event_label: 'google_reviews', page: 'home' }));
   });
 }
 
-/* === MODAL OVERLAY FECHAR CLICANDO FORA === */
 function initModalClose() {
   const overlay = document.getElementById('modal-overlay');
   if (overlay) {
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) fecharModal();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modalAberto) fecharModal();
-    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) fecharModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalAberto) fecharModal(); });
   }
 }
 
-/* === INIT === */
-document.addEventListener('DOMContentLoaded', () => {
+/* ─────────────────────────────────────────────
+   INIT
+   Única mudança: aguarda carregarEstoque() antes
+   de renderizar qualquer coisa
+   ───────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async () => {
   initNav();
   initTracking();
   initMapaTracking();
   initModalClose();
 
-  // Home
+  /* Carrega estoque do Supabase uma única vez */
+  estoque = await carregarEstoque();
+
+  /* Home — destaques */
   renderDestaques();
 
-  // Estoque
+  /* Página de estoque */
   if (document.getElementById('estoque-grid')) {
     buildSidebar();
     initSidebarMobile();
