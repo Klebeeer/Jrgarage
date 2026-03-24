@@ -928,3 +928,28 @@ h3 { font-size: 1.2rem; }
   .navbar-logo-image { height: 38px; max-width: 120px; }
   .footer-logo-image { height: 46px; }
 }
+.footer-col ul li,
+.footer-col ul li a {
+  font-size: 0.85rem;
+  color: var(--texto-muted);
+  transition: color var(--transition);
+}
+
+.footer-col ul li a:hover {
+  color: var(--branco);
+}
+
+.admin-link{
+  font-size: 0.72rem;
+  color: #666;
+  opacity: 0.55;
+  text-decoration: none;
+  transition: opacity 0.2s ease, color 0.2s ease, letter-spacing 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-link:hover{
+  opacity: 1;
+  color: #fff;
+  letter-spacing: 0.4px;
+}
