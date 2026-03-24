@@ -137,7 +137,6 @@ h3 { font-size: 1.2rem; }
   object-fit: contain;
 }
 
-
 .navbar-links {
   display: flex;
   align-items: center;
@@ -574,6 +573,7 @@ h3 { font-size: 1.2rem; }
 
 .footer-col h4 { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--texto-light); margin-bottom: 16px; }
 .footer-col ul { display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul li,
 .footer-col ul li a { font-size: 0.85rem; color: var(--texto-muted); transition: color var(--transition); }
 .footer-col ul li a:hover { color: var(--branco); }
 
@@ -588,6 +588,22 @@ h3 { font-size: 1.2rem; }
 }
 
 .footer-bottom p { font-size: 0.78rem; color: var(--texto-muted); }
+
+.admin-link{
+  font-size: 0.72rem;
+  color: #666;
+  opacity: 0.55;
+  text-decoration: none;
+  transition: opacity 0.2s ease, color 0.2s ease, letter-spacing 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-link:hover{
+  opacity: 1;
+  color: #fff;
+  letter-spacing: 0.4px;
+}
+
 .footer-credit { font-size: 0.78rem; color: var(--texto-muted); }
 .footer-credit a { color: var(--destaque); transition: color var(--transition); }
 .footer-credit a:hover { color: var(--destaque-hover); }
@@ -907,7 +923,6 @@ h3 { font-size: 1.2rem; }
   .mapa-track iframe { height: 300px; }
   .card-actions { grid-template-columns: 1fr; }
 }
-
 
 @media (max-width: 768px) {
   .navbar-logo-image { height: 38px; max-width: 120px; }
