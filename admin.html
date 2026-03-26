@@ -577,6 +577,7 @@
               <th>Foto</th>
               <th>Veículo</th>
               <th>Ano</th>
+              <th>KM</th>
               <th>Preço</th>
               <th>Selo</th>
               <th>Destaque</th>
@@ -632,6 +633,17 @@
           <option value="CVT">CVT</option>
           <option value="Automatizado">Automatizado</option>
         </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label>Quilometragem</label>
+        <input type="text" id="form-km" placeholder="Ex: 45.000 km">
+      </div>
+      <div class="field">
+        <label>Cor</label>
+        <input type="text" id="form-cor" placeholder="Ex: Prata">
       </div>
     </div>
 
@@ -817,6 +829,7 @@ async function carregarTabela() {
       <td class="td-foto">${fotoHTML}</td>
       <td class="td-nome">${v.marca} ${v.modelo}</td>
       <td>${v.ano}</td>
+      <td>${v.km || '—'}</td>
       <td class="td-preco">${v.preco}</td>
       <td>${seloHTML}</td>
       <td>${destaqueHTML}</td>
@@ -860,6 +873,8 @@ async function abrirFormEditar(id) {
   document.getElementById('form-modelo').value    = v.modelo    || '';
   document.getElementById('form-ano').value       = v.ano       || '';
   document.getElementById('form-motor').value     = v.motor     || '';
+  document.getElementById('form-km').value        = v.km        || '';
+  document.getElementById('form-cor').value       = v.cor       || '';
   document.getElementById('form-cambio').value    = v.cambio    || '';
   document.getElementById('form-preco').value     = v.preco     || '';
   document.getElementById('form-selo').value      = v.selo      || '';
@@ -965,6 +980,8 @@ async function salvarVeiculo() {
     motor,
     cambio,
     preco,
+    km:        document.getElementById('form-km').value.trim(),
+    cor:       document.getElementById('form-cor').value.trim(),
     descricao: document.getElementById('form-descricao').value.trim(),
     selo:      document.getElementById('form-selo').value || null,
     destaque:  document.getElementById('form-destaque').checked,
