@@ -181,6 +181,8 @@ function abrirModal(id) {
       <div class="spec-item"><div class="spec-label">Motor</div><div class="spec-valor">${v.motor}</div></div>
       <div class="spec-item"><div class="spec-label">Câmbio</div><div class="spec-valor">${v.cambio}</div></div>
       <div class="spec-item"><div class="spec-label">Marca</div><div class="spec-valor">${v.marca}</div></div>
+      ${v.km ? `<div class="spec-item"><div class="spec-label">Quilometragem</div><div class="spec-valor">${v.km}</div></div>` : ''}
+      ${v.cor ? `<div class="spec-item"><div class="spec-label">Cor</div><div class="spec-valor">${v.cor}</div></div>` : ''}
     </div>
     <p class="modal-desc">${v.descricao}</p>
     <div class="modal-actions">
